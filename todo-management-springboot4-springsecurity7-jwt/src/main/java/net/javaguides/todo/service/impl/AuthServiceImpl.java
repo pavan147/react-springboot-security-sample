@@ -1,6 +1,7 @@
 package net.javaguides.todo.service.impl;
 
 import lombok.AllArgsConstructor;
+import net.javaguides.todo.dto.JwtAuthResponse;
 import net.javaguides.todo.dto.LoginDto;
 import net.javaguides.todo.dto.RegisterDto;
 import net.javaguides.todo.entity.Role;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -62,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginDto loginDto) {
+    public JwtAuthResponse login(LoginDto loginDto) {
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginDto.getUsernameOrEmail(),
@@ -72,8 +74,21 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String token = jwtTokenProvider.generateToken(authentication);
+        Optional<User> byUsernameOrEmail = userRepository.findByUsernameOrEmail(loginDto.getUsernameOrEmail(), loginDto.getUsernameOrEmail());
+          String role = null;
+         if(byUsernameOrEmail.isPresent()){
+             User loggUser = byUsernameOrEmail.get();
+             Optional<Role> roleOptional = loggUser.getRoles().stream().findFirst();
+             if(roleOptional.isPresent()){
+                 Role userRole = roleOptional.get();
+                 role = userRole.getName();
+             }
+         }
+         JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+        jwtAuthResponse.setRole(role);
+        jwtAuthResponse.setAccessToken(token);
 
-        return token;
+        return jwtAuthResponse;
     }
 
 

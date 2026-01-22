@@ -51,10 +51,10 @@ public class SpringSecurityConfig {
                     authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     authorize.anyRequest().authenticated();
                 }).httpBasic(Customizer.withDefaults());
-
+      //Unauthorised use try to access then spring security throw exception
         http.exceptionHandling( exception -> exception
                 .authenticationEntryPoint(authenticationEntryPoint));
-
+      // to let knkw Spring jwt auth filter . this  filter execute before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
